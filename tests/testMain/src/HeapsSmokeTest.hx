@@ -17,6 +17,7 @@ final class HeapsSmokeTest extends hxd.App {
 	override function init():Void {
 		try {
 			TestSupport.testMidiProbes();
+			TestSupport.testPreparedPlaybackFallback();
 
 			if (TestSupport.hasSystemMidiPlayback()) {
 				systemFixtures = TestSupport.getMidiFixtures().copy();

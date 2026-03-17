@@ -46,6 +46,12 @@ Useful methods:
 - `getDefaultSoundFontPath()`
 - `probeMidi(bytes)`
 - `probeSoundFont(bytes)`
+- `preparePlayback(midiBytes, ?soundFontBytes, ?format, ?loop, ?fileNameHint)`
+- `preparePlaybackFromFile(path, ?soundFontBytes, ?format, ?loop)`
+- `preparePlaybackPCM16(midiBytes, ?soundFontBytes, ?loop, ?fileNameHint)`
+- `preparePlaybackPCMFloat(midiBytes, ?soundFontBytes, ?loop, ?fileNameHint)`
+- `preparePlaybackPCM16FromFile(path, ?soundFontBytes, ?loop)`
+- `preparePlaybackPCMFloatFromFile(path, ?soundFontBytes, ?loop)`
 - `decodeToPCM16(midiBytes, ?soundFontBytes)`
 - `decodeToPCMFloat(midiBytes, ?soundFontBytes)`
 - `describeLastError()`
@@ -101,7 +107,7 @@ If Heaps is present and `midisf2.Boot.setup()` is enabled, `.mid` and `.midi` re
 Minimal setup:
 
 ```haxe
-// you can set it for soundfont playback, or skip it for system playback
+// optional: with SoundFont set, MIDI is rendered through SF2
 midisf2.Midi.setDefaultSoundFontFromFile("soundfont.sf2");
 
 final sound = hxd.Res.music; // midi
@@ -116,8 +122,34 @@ What happens internally:
 
 Important:
 
-- Heaps playback uses rendered MIDI + SF2
-- a default SoundFont must be set before loading/playing MIDI resources
+- if a default SoundFont is set, Heaps playback uses rendered MIDI + SF2
+- if no default SoundFont is set and system MIDI playback is available, `sound.play()` falls back to the OS synth
+- direct `hxd.snd.MidiData` usage still requires a SoundFont because it produces PCM data
+
+## Plain HashLink usage
+
+For non-Heaps HashLink code, use the unified prepare helpers:
+
+```haxe
+final prepared = midisf2.Midi.preparePlaybackFromFile("music.mid");
+if (prepared == null)
+	throw midisf2.Midi.describeLastError();
+
+switch (prepared) {
+	case System:
+		// playing through the OS synth already started
+	case Rendered(decoded):
+		// feed decoded.bytes / decoded.channels / decoded.sampleRate into your audio backend
+}
+```
+
+Use `midisf2.PlaybackFormat.PCMFloat` when your backend prefers float PCM.
+
+Behavior:
+
+- if a SoundFont is passed or configured by default, you get decoded PCM data
+- if no SoundFont is available and system MIDI playback is supported, the OS synth starts automatically
+- if neither path is available, the call returns `null` and `describeLastError()` explains why
 
 ## Windows system MIDI playback
 

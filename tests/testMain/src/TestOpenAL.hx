@@ -24,6 +24,7 @@ private function main() {
 	failed = runCheck("probe-midi", TestSupport.testMidiProbes, failed);
 	failed = runCheck("invalid", TestSupport.testInvalidInput, failed);
 	failed = runCheck("missing-soundfont", TestSupport.testMissingSoundFont, failed);
+	failed = runCheck("prepared-playback", TestSupport.testPreparedPlaybackFallback, failed);
 
 	if (TestSupport.hasSystemMidiPlayback()) {
 		for (fixture in TestSupport.getMidiFixtures())

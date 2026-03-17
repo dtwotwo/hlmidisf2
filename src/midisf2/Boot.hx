@@ -8,7 +8,16 @@ import midisf2.format.MidiFormat;
 import hxd.res.Config;
 #end
 
-class Boot {
+/**
+	Macro bootstrap for Heaps integration.
+
+	Call `midisf2.Boot.setup()` from your build macros to register MIDI
+	resources as `hxd.res.Sound` and install the sound patching macro.
+**/
+final class Boot {
+	/**
+		Installs the Heaps resource and macro hooks for MIDI support.
+	**/
 	public static function setup() {
 		#if (haxe_ver >= 5)
 		Context.onAfterInitMacros(() -> apply());
@@ -28,5 +37,9 @@ class Boot {
 	}
 }
 #else
-class Boot {}
+
+/**
+	Runtime placeholder for non-macro builds.
+**/
+final class Boot {}
 #end

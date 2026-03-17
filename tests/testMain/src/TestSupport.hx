@@ -21,7 +21,7 @@ class TestSupport {
 	public static final SYSTEM_MIDI_PREFIX = "system-midi/";
 	public static final SOUNDFONT_MIDI_PREFIX = "soundfont-midi/";
 
-	static final GENERATED_MIDI_HEX = "4d546864000000060000000100604d54726b0000000f00c00000903c6460803c4000ff2f00";
+	static final GENERATED_MIDI_HEX = "4d546864000000060000000100604d54726b0000000f00c00000903c6460803c4000ff2f00"; // C-5 Piano 1 v127
 	static var soundFontPathScanned = false;
 	static var cachedSoundFontPath:Null<String>;
 	static var soundFontBytesLoaded = false;
@@ -177,11 +177,27 @@ class TestSupport {
 	public static function testMissingSoundFont():Void {
 		Midi.clearDefaultSoundFont();
 		assert(Midi.decodeToPCM16(buildGeneratedMidi()) == null, "decode without SoundFont should fail");
-		assertEquals(
-			"No SoundFont provided. Pass .sf2 bytes to decode or call midisf2.Midi.setDefaultSoundFont() / setDefaultSoundFontFromFile() first.",
-			Midi.describeLastError(),
-			"missing SoundFont should explain failure"
-		);
+		assertEquals("No SoundFont provided. Pass .sf2 bytes to decode or call midisf2.Midi.setDefaultSoundFont() / setDefaultSoundFontFromFile() first.", Midi.describeLastError(), "missing SoundFont should explain failure");
+	}
+
+	public static function testPreparedPlaybackFallback():Void {
+		Midi.clearDefaultSoundFont();
+		final prepared = Midi.preparePlaybackPCM16(buildGeneratedMidi(), null, false, GENERATED_MIDI_NAME + ".mid");
+
+		if (hasSystemMidiPlayback()) {
+			assert(prepared != null, "prepared playback should succeed with system synth fallback");
+			switch (prepared) {
+				case System:
+				case Rendered(_):
+					throw "prepared playback should use system synth when no SoundFont is set";
+			}
+			Midi.stopSystemSynth();
+			return;
+		}
+
+		assert(prepared == null, "prepared playback without SoundFont should fail when system synth is unavailable");
+		assertEquals("No SoundFont provided. Pass .sf2 bytes to decode or call midisf2.Midi.setDefaultSoundFont() / setDefaultSoundFontFromFile() first.", Midi.describeLastError(),
+			"missing SoundFont should still explain the failure when no fallback is available");
 	}
 
 	public static function playSystemFixture(fixture:MidiFixture):Void {

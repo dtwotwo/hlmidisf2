@@ -6,7 +6,17 @@ import haxe.macro.Expr.Field;
 
 using Lambda;
 
-class Macro {
+/**
+	Build macro that extends `hxd.res.Sound` with MIDI-aware behavior.
+
+	It teaches Heaps sound resources to recognize MIDI files, decode them
+	through `MidiData`, and fall back to `SystemMidiChannel` when no
+	default SoundFont is configured but OS MIDI playback is available.
+**/
+final class Macro {
+	/**
+		Patches `hxd.res.Sound` during compilation.
+	**/
 	public static macro function buildSound():Array<Field> {
 		final fields = Context.getBuildFields();
 
@@ -41,6 +51,27 @@ class Macro {
 
 						if (data != null)
 							return data;
+
+						return $originalExpr;
+					};
+				default:
+			}
+		}
+
+		final playField = fields.find(f -> f.name == "play");
+		if (playField != null) {
+			switch playField.kind {
+				case FFun(fn):
+					final originalExpr = fn.expr;
+					fn.expr = macro {
+						if (isMidiPath(entry.path) && !midisf2.Midi.hasDefaultSoundFont() && midisf2.Midi.isSystemPlaybackSupported()) {
+							lastPlay = haxe.Timer.stamp();
+							stop();
+							if (!midisf2.Midi.playBytesWithSystemSynth(entry.getBytes(), loop, entry.path))
+								throw midisf2.Midi.describeLastError();
+							channel = new hxd.snd.SystemMidiChannel(this, loop, volume);
+							return channel;
+						}
 
 						return $originalExpr;
 					};
