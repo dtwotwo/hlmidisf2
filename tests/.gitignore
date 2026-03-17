@@ -1,0 +1,4 @@
+*.hdll
+!testinput.hdll
+*.hl
+*.sf2

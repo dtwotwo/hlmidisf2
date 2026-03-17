@@ -1,0 +1,10 @@
+-cp .
+-cp src
+-lib heaps
+-lib hlsdl
+-lib hlopenal
+-lib hlmidisf2
+-D resourcesPath=midi
+-m HeapsSmokeTest
+-hl test-heaps.hl
+-D windowSize=800x600
