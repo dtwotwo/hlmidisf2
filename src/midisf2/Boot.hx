@@ -33,7 +33,7 @@ final class Boot {
 		for (ext in MidiFormat.resourceExtensions)
 			Config.addExtension(ext, "hxd.res.Sound");
 		#end
-		Compiler.addGlobalMetadata("hxd.res.Sound", "@:build(midisf2.Macro.buildSound())", false, true, false);
+		Compiler.addMetadata("@:build(midisf2.Macro.buildSound())", "hxd.res.Sound");
 	}
 }
 #else
